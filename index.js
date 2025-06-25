@@ -1,28 +1,26 @@
-const express = require('express');
-const fileUpload = require('express-fileupload');
-const pdfParse = require('pdf-parse');
-const cors = require('cors');
+import express from "express";
+import multer from "multer";
+import cors from "cors";
+import pdfParse from "pdf-parse";
+
 const app = express();
-
+const upload = multer();
 app.use(cors());
-app.use(fileUpload());
 
-app.post('/pdf-to-text', async (req, res) => {
+app.post("/pdf-to-text", upload.single("file"), async (req, res) => {
   try {
-    if (!req.files || !req.files.file) {
-      return res.status(400).json({ success: false, message: 'No file uploaded' });
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: "No file uploaded" });
     }
 
-    const pdfFile = req.files.file;
-    const data = await pdfParse(pdfFile.data);
-
+    const data = await pdfParse(req.file.buffer);
     res.json({ success: true, text: data.text });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Error parsing PDF', error: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log("Server running on port", PORT);
 });
